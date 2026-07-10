@@ -6086,6 +6086,13 @@ validate_trivial_abi_attribute (tree type)
 
   gcc_assert (COMPLETE_TYPE_P (type));
 
+  auto remove_trivial_abi_attribute = [type] {
+    for (tree variant = TYPE_MAIN_VARIANT (type); variant;
+	 variant = TYPE_NEXT_VARIANT (variant))
+      TYPE_ATTRIBUTES (variant)
+	= remove_attribute ("trivial_abi", TYPE_ATTRIBUTES (variant));
+  };
+
   /* Check for virtual bases.  */
   if (CLASSTYPE_VBASECLASSES (type))
     {
@@ -6093,8 +6100,7 @@ validate_trivial_abi_attribute (tree type)
       if (warning (OPT_Wattributes, "%<trivial_abi%> cannot be applied to %qT",
 		   type))
 	inform (input_location, "has a virtual base");
-      TYPE_ATTRIBUTES (type)
-	= remove_attribute ("trivial_abi", TYPE_ATTRIBUTES (type));
+      remove_trivial_abi_attribute ();
       return;
     }
 
@@ -6105,8 +6111,7 @@ validate_trivial_abi_attribute (tree type)
       if (warning (OPT_Wattributes, "%<trivial_abi%> cannot be applied to %qT",
 		   type))
 	inform (input_location, "is polymorphic");
-      TYPE_ATTRIBUTES (type)
-	= remove_attribute ("trivial_abi", TYPE_ATTRIBUTES (type));
+      remove_trivial_abi_attribute ();
       return;
     }
 
@@ -6126,8 +6131,7 @@ validate_trivial_abi_attribute (tree type)
 			   "%<trivial_abi%> cannot be applied to %qT", type))
 		inform (input_location, "has a non-trivial base class %qT",
 			base_type);
-	      TYPE_ATTRIBUTES (type)
-		= remove_attribute ("trivial_abi", TYPE_ATTRIBUTES (type));
+	      remove_trivial_abi_attribute ();
 	      return;
 	    }
 	}
@@ -6147,8 +6151,7 @@ validate_trivial_abi_attribute (tree type)
 			   "%<trivial_abi%> cannot be applied to %qT", type))
 		inform (input_location, "has a non-static data member "
 			"of non-trivial type %qT", field_type);
-	      TYPE_ATTRIBUTES (type)
-		= remove_attribute ("trivial_abi", TYPE_ATTRIBUTES (type));
+	      remove_trivial_abi_attribute ();
 	      return;
 	    }
 	}
@@ -6162,8 +6165,7 @@ validate_trivial_abi_attribute (tree type)
 		   type))
 	inform (input_location,
 		"copy constructors and move constructors are all deleted");
-      TYPE_ATTRIBUTES (type)
-	= remove_attribute ("trivial_abi", TYPE_ATTRIBUTES (type));
+      remove_trivial_abi_attribute ();
       return;
     }
 }
